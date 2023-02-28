@@ -17,6 +17,7 @@ class EnvState:
 class EnvParams:
     reward_timestep: chex.Array
     optimal_return: float = 1.1
+    minimal_return: float = 1.0
     max_steps_in_episode: int = 100
 
 
@@ -31,8 +32,6 @@ class DiscountingChain(environment.Environment):
         self.n_actions = n_actions
         self.mapping_seed = mapping_seed
 
-        # Setup reward fct fron mapping seed - random sampling outside of env
-        self.reward = jnp.ones(self.n_actions).at[self.mapping_seed].set(1.1)
 
     @property
     def default_params(self) -> EnvParams:
@@ -69,6 +68,10 @@ class DiscountingChain(environment.Environment):
         self, key: chex.PRNGKey, params: EnvParams
     ) -> Tuple[chex.Array, EnvState]:
         """Reset environment state by sampling initial position."""
+
+        # Setup reward fct fron mapping seed - random sampling outside of env
+        self.reward = jnp.ones(self.n_actions).at[self.mapping_seed].set(params.optimal_return)
+
         state = EnvState(self.reward, -1, 0)
         return self.get_obs(state, params), state
 
@@ -111,7 +114,7 @@ class DiscountingChain(environment.Environment):
         return spaces.Dict(
             {
                 "rewards": spaces.Box(
-                    1, 1.1, (self.n_actions,), dtype=jnp.float32
+                    params.minimal_return, params.optimal_return, (self.n_actions,), dtype=jnp.float32
                 ),
                 "context": spaces.Box(
                     -1, self.n_actions, (), dtype=jnp.float32
