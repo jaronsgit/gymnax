@@ -34,7 +34,7 @@ class Pendulum(environment.Environment):
 
     def __init__(self):
         super().__init__()
-        self.obs_shape = (3,)
+        self.obs_shape = (2,) # (3,)
 
     @property
     def default_params(self) -> EnvParams:
@@ -93,8 +93,9 @@ class Pendulum(environment.Environment):
         """Return angle in polar coordinates and change."""
         return jnp.array(
             [
-                jnp.cos(state.theta),
-                jnp.sin(state.theta),
+                # jnp.cos(state.theta),
+                # jnp.sin(state.theta),
+                state.theta,
                 state.theta_dot,
             ]
         ).squeeze()
@@ -128,8 +129,8 @@ class Pendulum(environment.Environment):
 
     def observation_space(self, params: EnvParams) -> spaces.Box:
         """Observation space of the environment."""
-        high = jnp.array([1.0, 1.0, params.max_speed], dtype=jnp.float32)
-        return spaces.Box(-high, high, shape=(3,), dtype=jnp.float32)
+        high = jnp.array([jnp.pi, params.max_speed], dtype=jnp.float32)
+        return spaces.Box(-high, high, shape=(2,), dtype=jnp.float32)
 
     def state_space(self, params: EnvParams) -> spaces.Dict:
         """State space of the environment."""
